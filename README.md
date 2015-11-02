@@ -26,7 +26,7 @@ The MAC address can be entered with either `-` or `:` separators. However, the a
 
 ## Testing
 
-To test, build the JAR file with Run, Build Project. The run
+To test, build the JAR file in Netbeans by using Run, Build Project. Then perform:
 
     java -jar dist/MachineLabel.jar MACHINE-1 "01:02:03:04:05:06" "192.168.0.2"
     java -jar dist/MachineLabel.jar MACHINE-2 "07:08:09:0A:0B:0C"
