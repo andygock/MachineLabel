@@ -31,7 +31,10 @@ To test, build the JAR file with Run, Build Project. The run
     java -jar dist/MachineLabel.jar MACHINE-1 "01:02:03:04:05:06" "192.168.0.2"
     java -jar dist/MachineLabel.jar MACHINE-2 "07:08:09:0A:0B:0C"
 
-Example output:
+Example output (with IP address):
 
 ![Label with IP address](http://s.agock.com/MachineLabel/MACHINE-1.png)
+
+Example output (without IP address):
+
 ![Label without IP address](http://s.agock.com/MachineLabel/MACHINE-2.png)
