@@ -1,0 +1,16 @@
+# Ref: https://github.com/github/gitignore/blob/master/Global/NetBeans.gitignore
+
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+.nb-gradle/
+*.class
+*.jar
+*.war
+*.ear
+!lib/*.jar
+*.png
