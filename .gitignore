@@ -13,4 +13,5 @@ nb-configuration.xml
 *.war
 *.ear
 !lib/*.jar
+!lib/CopyLibs/*.jar
 *.png
