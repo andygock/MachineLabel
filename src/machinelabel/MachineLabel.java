@@ -28,6 +28,12 @@ import java.io.IOException;
 import net.sourceforge.barbecue.BarcodeException;
 import net.sourceforge.barbecue.output.OutputException;
 
+import java.io.*;
+import java.awt.*;
+import java.awt.image.*;
+import javax.imageio.*;
+import java.nio.*;
+
 /**
  *
  * @author andy
@@ -66,6 +72,9 @@ public class MachineLabel {
             label.writePNG();
             
             // Concatenate the PNGs
+            stackImages(new String[] {"ip_address.png", "mac_address.png", "machine_name.png"});
+            System.exit(0);
+            
             Runtime rt = Runtime.getRuntime();
             String outputfile = machineName + ".png";
 
@@ -160,7 +169,7 @@ public class MachineLabel {
                     "mac_address.png"
                 };                
             }
-
+            
             // Run these 3 commands to create the barcode label
             rt.exec(arrayJoin(cmdConvert, cmdCreateBlankParams)).waitFor();
             rt.exec(arrayJoin(cmdConvert, cmdCreateLabelParams)).waitFor();
@@ -179,6 +188,60 @@ public class MachineLabel {
         System.arraycopy(a,0,output,0,a.length);
         System.arraycopy(b,0,output,a.length,b.length);
         return output;
+    }
+    
+    // stack/append images using native java methods
+    private static void stackImages(String[] imageFileName) throws IOException {
+        System.out.println(System.getProperty("user.dir"));
+
+        // space between stacking
+        int stackHeight = 15;
+        
+        // load individual source images
+        
+        int srcWidth;
+        int srcHeight;
+        int totalHeight = 0;
+        int maxWidth = 0;
+        
+        // read the input images
+        
+        BufferedImage[] buffImage = new BufferedImage[imageFileName.length];
+        
+        for (int n = 0; n < imageFileName.length; n++) {
+            System.out.println("imageFileName = " + imageFileName[n]);
+            
+            buffImage[n] = ImageIO.read(new File(imageFileName[n]));
+            
+            srcWidth = buffImage[n].getWidth();
+            srcHeight = buffImage[n].getHeight();
+            
+            System.out.println("srcWidth = " + srcWidth);
+            System.out.println("srcHeight = " + srcHeight);
+            
+            if (srcWidth > maxWidth) {
+                maxWidth = srcWidth;
+            }
+
+            totalHeight += (srcHeight + stackHeight);
+        }
+        
+        totalHeight += stackHeight;
+        
+        System.out.println("totalHeight = " + totalHeight);
+        System.out.println("maxWidth = " + maxWidth);
+        
+        // create final image
+        //int width = 1;
+        //int height = 1;
+        BufferedImage finalImage = new BufferedImage(maxWidth + 2 * stackHeight, totalHeight, BufferedImage.TYPE_BYTE_INDEXED);
+        
+        // stack the images
+        for (int n = 0; n < imageFileName.length; n++) {
+            finalImage.createGraphics().drawImage(buffImage[n], 0, 0, 50, 50, null);
+        }
+        
+        ImageIO.write(finalImage,"png",new File("output.png"));
     }
     
 }
