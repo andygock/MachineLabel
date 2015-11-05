@@ -50,6 +50,9 @@ public class Label {
     
     @Option(name = "-o", usage = "Output file name, optional", metaVar = "FILENAME")
     private String outputFilename = "output.png";
+
+    @Option(name = "-type", usage = "Code type, optional", metaVar = "CODETYPE")
+    private String codetype = "code128";
     
     @Argument(usage = "Data fields, minimum of 1 field required", required = true, metaVar = "DATAx")
     private String[] data;
@@ -75,20 +78,29 @@ public class Label {
                 System.exit(1);
             }
             
+            int errorCount = 0;
             // create the PNGs
             for (String d: data) {
                 
                 // convert MAC address formatting
                 d = dataFilter(d);
-                //System.out.println("d = " + d);
                 
-                // create the barcode image and save it as a PNG
-                Barcoder barcode = new Barcoder(d);
-                barcode.setBarHeight(barHeight);
-                barcode.setBarWidth(barWidth);
-                String savedFilename = barcode.writePNG();
-                
-                //System.out.println("savedFilename = " + savedFilename);
+                try {
+                    // create the barcode image and save it as a PNG
+                    Barcoder barcode = new Barcoder(d);
+                    barcode.setCodeType(codetype);
+                    barcode.setBarHeight(barHeight);
+                    barcode.setBarWidth(barWidth);
+                    String savedFilename = barcode.writePNG();
+                } catch (BarcodeException e) {
+                    System.out.println("Error (" + d + "): " + e.getMessage());
+                    errorCount++;
+                    continue;
+                } 
+            }
+            
+            if (errorCount > 0) {
+                System.exit(1);
             }
             
             // create array of image filenames
@@ -120,9 +132,6 @@ public class Label {
             System.err.println("Options and arguments:");
             parser.printUsage(System.err);
             //e.printStackTrace();
-            System.exit(1);
-        } catch (BarcodeException e) {
-            e.printStackTrace();
             System.exit(1);
         } catch (OutputException | IOException e) {
             e.printStackTrace();
