@@ -15,3 +15,5 @@ nb-configuration.xml
 !lib/*.jar
 !lib/CopyLibs/*.jar
 *.png
+
+.DS_Store

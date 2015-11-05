@@ -27,12 +27,10 @@ package machinelabel;
 import java.io.IOException;
 import net.sourceforge.barbecue.BarcodeException;
 import net.sourceforge.barbecue.output.OutputException;
-
 import java.io.*;
 import java.awt.*;
 import java.awt.image.*;
 import javax.imageio.*;
-import java.nio.*;
 
 /**
  *
@@ -72,110 +70,22 @@ public class MachineLabel {
             label.writePNG();
             
             // Concatenate the PNGs
-            stackImages(new String[] {"ip_address.png", "mac_address.png", "machine_name.png"});
+            String[] imageNames = new String[] {
+                "machine_name.png",
+                "mac_address.png",
+                "ip_address.png"
+            };
+            stackImages(machineName + ".png", imageNames);
+            
+            // Delete the source PNGs
+            for (String filename: imageNames) {
+                File f = new File(filename);
+                f.delete();
+            }
+            
             System.exit(0);
             
-            Runtime rt = Runtime.getRuntime();
-            String outputfile = machineName + ".png";
-
-            // Determine what platform we are running on
-            String platform = System.getProperty("os.name");
-            
-            String[] cmdConvert = null;
-            String[] cmdRemove = null;
-            
-            if (platform.startsWith("Windows")) {
-                
-                // Windows only - requires ImageMagick and installed and in PATH
-                cmdConvert = new String[] { "cmd", "/c", "convert" };
-                cmdRemove = new String[] { "cmd", "/c", "del" };
-                
-            } else if (platform.equals("Mac OS X")) {
-                
-                // Assumes install of ImageMagick in /usr/local/bin - e.g Homebrew
-                cmdConvert = new String[] { "/usr/local/bin/convert" };
-                cmdRemove = new String[] { "rm", "-f" };
-                
-            } else {
-                
-                // Unsupported platform
-                // This should run fine on Linux, just haven't tested it...
-                System.err.println("Platform not supported: " + platform);
-                System.exit(1);
-                
-            }
-
-            // Command line parameters to create blank PNG, used as a spacer between barcodes
-            // Run with ImageMagick "convert"
-            String[] cmdCreateBlankParams = new String[] {
-                "-size", "1x15",
-                "xc:#ffffff",
-                "blank.png"
-            };
-            
-            // Command line parameters to append different images together
-            // Run with ImageMagick "convert"
-            String[] cmdCreateLabelParams = null;
-            
-            if (args.length == 3) {
-                // ip address supplied
-                cmdCreateLabelParams = new String[] {
-                    // convert
-                    "blank.png",
-                    "machine_name.png",
-                    "blank.png",
-                    "mac_address.png",
-                    "blank.png",
-                    "ip_address.png",
-                    "blank.png",
-                    "-gravity", "center",
-                    "-append",
-                    outputfile
-                };
-            } else {
-                // no ip address
-                cmdCreateLabelParams = new String[] {
-                    // convert
-                    "blank.png",
-                    "machine_name.png",
-                    "blank.png",
-                    "mac_address.png",
-                    "blank.png",
-                    "-gravity", "center",
-                    "-append",
-                    outputfile
-                };                
-            }
-            
-            // Files to delete after conversion
-            // Run with OS specific remove or delete command
-            String[] cmdDeleteLabelParams = null;
-            
-            if (args.length == 3) {
-                // ip address supplied
-                cmdDeleteLabelParams = new String[] {
-                    // rm
-                    "blank.png",
-                    "machine_name.png",
-                    "mac_address.png",
-                    "ip_address.png"
-                };
-            } else {
-                // no ip address supplied
-                cmdDeleteLabelParams = new String[] {
-                    // rm
-                    "blank.png",
-                    "machine_name.png",
-                    "mac_address.png"
-                };                
-            }
-            
-            // Run these 3 commands to create the barcode label
-            rt.exec(arrayJoin(cmdConvert, cmdCreateBlankParams)).waitFor();
-            rt.exec(arrayJoin(cmdConvert, cmdCreateLabelParams)).waitFor();
-            rt.exec(arrayJoin(cmdRemove, cmdDeleteLabelParams)).waitFor();
-            
-        } catch (BarcodeException | OutputException | IOException | InterruptedException e) {
+        } catch (BarcodeException | OutputException | IOException e) {
             System.err.println("Exception occured:");
             e.printStackTrace();
             System.exit(1);
@@ -190,35 +100,27 @@ public class MachineLabel {
         return output;
     }
     
-    // stack/append images using native java methods
-    private static void stackImages(String[] imageFileName) throws IOException {
-        System.out.println(System.getProperty("user.dir"));
+    // Stack/append images using native java methods
+    private static void stackImages(String outputFileName, String[] imageFileName) throws IOException {
+        //System.out.println(System.getProperty("user.dir"));
 
         // space between stacking
         int stackHeight = 15;
-        
-        // load individual source images
         
         int srcWidth;
         int srcHeight;
         int totalHeight = 0;
         int maxWidth = 0;
         
-        // read the input images
-        
+        // load individual source images
         BufferedImage[] buffImage = new BufferedImage[imageFileName.length];
-        
         for (int n = 0; n < imageFileName.length; n++) {
-            System.out.println("imageFileName = " + imageFileName[n]);
-            
             buffImage[n] = ImageIO.read(new File(imageFileName[n]));
             
             srcWidth = buffImage[n].getWidth();
             srcHeight = buffImage[n].getHeight();
             
-            System.out.println("srcWidth = " + srcWidth);
-            System.out.println("srcHeight = " + srcHeight);
-            
+            // keep track of max width
             if (srcWidth > maxWidth) {
                 maxWidth = srcWidth;
             }
@@ -228,20 +130,37 @@ public class MachineLabel {
         
         totalHeight += stackHeight;
         
-        System.out.println("totalHeight = " + totalHeight);
-        System.out.println("maxWidth = " + maxWidth);
-        
         // create final image
-        //int width = 1;
-        //int height = 1;
-        BufferedImage finalImage = new BufferedImage(maxWidth + 2 * stackHeight, totalHeight, BufferedImage.TYPE_BYTE_INDEXED);
+        int canvasWidth = maxWidth + 2 * stackHeight;
+        int canvasHeight = totalHeight;
+        BufferedImage finalImage = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_BYTE_INDEXED);
+        Graphics2D graphics = finalImage.createGraphics();
+        
+        // fill with white
+        graphics.fill(new Rectangle(canvasWidth, canvasHeight));
         
         // stack the images
+        int y = stackHeight;
         for (int n = 0; n < imageFileName.length; n++) {
-            finalImage.createGraphics().drawImage(buffImage[n], 0, 0, 50, 50, null);
+            // Notes about drawImage()
+            //   param 2 onwards = x, y, width, height
+            //   x, y origin is top left of canvas
+            
+            int imageWidth = buffImage[n].getWidth();
+            int imageHeight = buffImage[n].getHeight();
+            
+            // calculate x position for centering
+            int x_centered = (canvasWidth - imageWidth) / 2;
+            
+            // draw the image onto the canvas
+            graphics.drawImage(buffImage[n], x_centered, y, imageWidth, imageHeight, null);
+            
+            // calculate y position for next iteration
+            y += imageHeight;
+            y += stackHeight;
         }
         
-        ImageIO.write(finalImage,"png",new File("output.png"));
+        ImageIO.write(finalImage,"png",new File(outputFileName));
     }
     
 }
