@@ -33,37 +33,37 @@ import net.sourceforge.barbecue.output.OutputException;
 
 import java.io.*;
 
+
 /**
  *
  * @author andy
  */
 public class Label {
     
-    String machineName;
-    String macAddress;
-    String ipAddress;
+    private String data;
     
-    int barHeight = 70;
-    int barWidth = 3;
+    // default bar heights and widths
+    private int barHeight = 70;
+    private int barWidth = 3;
     
-    public Label(String machineName, String macAddress, String ipAddress)  {
-        this.machineName = machineName;
-        this.macAddress = macAddress;
-        this.ipAddress = ipAddress;
+    public Label(String data) {
+        this.data = data;
     }
-
-    public Label(String machineName, String macAddress)  {
-        this.machineName = machineName;
-        this.macAddress = macAddress;
-        this.ipAddress = null;
-    }    
+    
+    public void setBarHeight(int barHeight) {
+        this.barHeight = barHeight;
+    }
+    
+    public void setBarWidth(int barWidth) {
+        this.barWidth = barWidth;
+    }
     
     public void writePNG() throws BarcodeException, OutputException {
-        makeBarcode(machineName, "machine_name.png");
-        makeBarcode(macAddress, "mac_address.png");
-        if (ipAddress != null) {
-            makeBarcode(ipAddress, "ip_address.png");        
-        }
+        makeBarcode(data, data + ".png");
+    }
+
+    public void writePNG(String filename) throws BarcodeException, OutputException {
+        makeBarcode(data, filename);
     }
     
     private void makeBarcode(String text, String filename) throws BarcodeException, OutputException {
