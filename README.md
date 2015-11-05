@@ -22,6 +22,18 @@ This should generate a PNG image into the working directory with the filename `o
 
 For any field which is in a MAC address format with a `-` separators, the application will internally substitute them to `:`.
 
+## Command line usage
+
+    Example usage:
+     java -jar MachineLabel.jar  -h HEIGHT -o FILENAME -s SPACE -w WIDTH DATA1 DATA2 DATA3
+
+    Options and arguments:
+     DATAx       : Data fields, minimum of 1 field required
+     -h HEIGHT   : Bar height, optional (default: 34)
+     -o FILENAME : Output file name, optional (default: output.png)
+     -s SPACE    : Spacing, optional (default: 15)
+     -w WIDTH    : Bar width, optional (default: 3)
+
 ## Testing
 
 To test, build the JAR file in Netbeans by using Run, Build Project. Then perform:
