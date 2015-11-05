@@ -39,23 +39,33 @@ import org.kohsuke.args4j.*;
  */
 public class Label {
     
-    @Option(name = "-w", usage = "Bar width", metaVar = "WIDTH")
+    @Option(name = "-w", usage = "Bar width, optional", metaVar = "WIDTH")
     private int barWidth = 3;
     
-    @Option(name = "-h", usage = "Bar height", metaVar = "HEIGHT")
+    @Option(name = "-h", usage = "Bar height, optional", metaVar = "HEIGHT")
     private int barHeight = 70;
     
-    @Option(name = "-s", usage = "Spacing", metaVar = "SPACE")
+    @Option(name = "-s", usage = "Spacing, optional", metaVar = "SPACE")
     private int spacing = 15;
     
-    @Option(name = "-o", usage = "Output file name", metaVar = "FILENAME")
+    @Option(name = "-o", usage = "Output file name, optional", metaVar = "FILENAME")
     private String outputFilename = "output.png";
     
-    @Argument(usage = "Data fields", required = true, metaVar = "DATAx")
+    @Argument(usage = "Data fields, minimum of 1 field required", required = true, metaVar = "DATAx")
     private String[] data;
+    
+    private String dataFilter(String s) {
+        String out = "";
+        
+        // convert 00-00-00... MAC address format to 00:00:00...
+        out = s.replaceAll("([0-9A-Fa-f]{2})-([0-9A-Fa-f]{2})-([0-9A-Fa-f]{2})-([0-9A-Fa-f]{2})-([0-9A-Fa-f]{2})-([0-9A-Fa-f]{2})-([0-9A-Fa-f]{2})-([0-9A-Fa-f]{2})", "$1:$2:$3:$4:$5:$6:$7:$8");
+        
+        return out;
+    }
     
     public void run(String[] args) {
         CmdLineParser parser = new CmdLineParser(this);
+        
         try {
             // read command line arguments
             parser.parseArgument(args);
@@ -67,16 +77,24 @@ public class Label {
             
             // create the PNGs
             for (String d: data) {
+                
+                // convert MAC address formatting
+                d = dataFilter(d);
+                //System.out.println("d = " + d);
+                
+                // create the barcode image and save it as a PNG
                 Barcoder barcode = new Barcoder(d);
                 barcode.setBarHeight(barHeight);
                 barcode.setBarWidth(barWidth);
-                barcode.writePNG();
+                String savedFilename = barcode.writePNG();
+                
+                //System.out.println("savedFilename = " + savedFilename);
             }
             
             // create array of image filenames
             String[] imageFilenames = new String[data.length];
             for (int n = 0; n < data.length; n++) {
-                imageFilenames[n] = Hash.sha1(data[n]) + ".png";
+                imageFilenames[n] = Hash.sha1(dataFilter(data[n])) + ".png";
             }
             
             // stack the images
@@ -96,8 +114,10 @@ public class Label {
         } catch (CmdLineException e) {
             System.err.println("Error: " + e.getMessage());
             System.err.println();
-            System.err.println("Example usage: java -jar Label.jar " + parser.printExample(OptionHandlerFilter.ALL) + " DATA1 DATA2 DATA3");
+            System.err.println("Example usage:");
+            System.err.println(" java -jar MachineLabel.jar " + parser.printExample(OptionHandlerFilter.ALL) + " DATA1 DATA2 DATA3");
             System.err.println();
+            System.err.println("Options and arguments:");
             parser.printUsage(System.err);
             //e.printStackTrace();
             System.exit(1);
@@ -141,6 +161,7 @@ public class Label {
         BufferedImage[] buffImage = new BufferedImage[imageFileName.length];
         for (int n = 0; n < imageFileName.length; n++) {
             
+            //System.out.println("Opening: imageFileName["+n+"] = " + imageFileName[n]);
             buffImage[n] = ImageIO.read(new File(imageFileName[n])); // need to fix this .png hack
             
             srcWidth = buffImage[n].getWidth();
