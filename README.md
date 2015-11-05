@@ -1,28 +1,26 @@
 ## Introduction
 
-A tool used to generate a basic barcode label, for sticking onto a computer. The label contains information such as the machine name, MAC address and optionally, an IP address.
+A tool used to generate a basic label composed of one or more barcodes stacked vertically.
 
 ## Requirements
 
-* [Barbecue - Java barcode generator](http://sourceforge.net/projects/barbecue/files/barbecue/) library (BSD license). Download the latest JAR file and place it in the `lib/` directory. This Git repository will have the latest version (at the time of writing) already committed.
+* [Barbecue - Java barcode generator](http://sourceforge.net/projects/barbecue/files/barbecue/) library (BSD License).
+* [Apache Commons Codec](https://commons.apache.org/proper/commons-codec/) library. (Apache License v2)
+* [args4j](http://args4j.kohsuke.org/) Java command line arguments parser (MIT License)
+
+Download the latest JAR files and place it in the `lib/` directory. This Git repository will have the latest version (at the time of writing) already committed
 
 ## Information
 
 Directory structure is as a NetBeans project.
 
-Compile using NetBeans. To run the application, and example use would be:
+Compile using NetBeans. To run the application, an example use would be:
 
     java -jar MachineLabel.jar "MACHINE-NAME" "01:02:03:04:05:06" "192.168.0.2"
 
-The parameters are:
+This should generate a PNG image into the working directory with the filename `output.png`.
 
-    1. Machine name
-    2. MAC address
-    3. IP address (optional)
-
-This should generate a PNG image into the working directory in the format `MACHINE-NAME.png`.
-
-The MAC address can be entered with either `-` or `:` separators. However, the application will internally substitute them to `:` as required.
+For any field which is in a MAC address format with a `-` separators, the application will internally substitute them to `:`.
 
 ## Testing
 
