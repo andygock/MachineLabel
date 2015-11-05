@@ -30,6 +30,7 @@ import net.sourceforge.barbecue.BarcodeException;
 import net.sourceforge.barbecue.BarcodeFactory;
 import net.sourceforge.barbecue.BarcodeImageHandler;
 import net.sourceforge.barbecue.output.OutputException;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.*;
 
@@ -38,7 +39,7 @@ import java.io.*;
  *
  * @author andy
  */
-public class Label {
+public class Barcoder {
     
     private String data;
     
@@ -46,7 +47,7 @@ public class Label {
     private int barHeight = 70;
     private int barWidth = 3;
     
-    public Label(String data) {
+    public Barcoder(String data) {
         this.data = data;
     }
     
@@ -58,12 +59,15 @@ public class Label {
         this.barWidth = barWidth;
     }
     
-    public void writePNG() throws BarcodeException, OutputException {
-        makeBarcode(data, data + ".png");
+    public String writePNG() throws BarcodeException, OutputException {
+        String hash = Hash.sha1(data);
+        makeBarcode(data, hash + ".png");
+        return hash + ".png";
     }
 
-    public void writePNG(String filename) throws BarcodeException, OutputException {
+    public String writePNG(String filename) throws BarcodeException, OutputException {
         makeBarcode(data, filename);
+        return filename;
     }
     
     private void makeBarcode(String text, String filename) throws BarcodeException, OutputException {

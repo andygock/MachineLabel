@@ -37,7 +37,7 @@ import org.kohsuke.args4j.*;
  *
  * @author andy
  */
-public class MachineLabel {
+public class Label {
     
     @Option(name = "-w", usage = "Bar width", metaVar = "WIDTH")
     private int barWidth = 3;
@@ -67,16 +67,16 @@ public class MachineLabel {
             
             // create the PNGs
             for (String d: data) {
-                Label label = new Label(d);
-                label.setBarHeight(barHeight);
-                label.setBarWidth(barWidth);
-                label.writePNG(d + ".png");
+                Barcoder barcode = new Barcoder(d);
+                barcode.setBarHeight(barHeight);
+                barcode.setBarWidth(barWidth);
+                barcode.writePNG();
             }
             
             // create array of image filenames
             String[] imageFilenames = new String[data.length];
             for (int n = 0; n < data.length; n++) {
-                imageFilenames[n] = data[n] + ".png";
+                imageFilenames[n] = Hash.sha1(data[n]) + ".png";
             }
             
             // stack the images
@@ -84,15 +84,19 @@ public class MachineLabel {
 
             // delete source images
             for (String filename : imageFilenames) {
-                File file = new File(filename);
-                file.delete();
+                try {
+                    File file = new File(filename);
+                    file.delete();
+                } catch (SecurityException e) {
+                    // do nothing!
+                }
             }
             
         // Deal with prettier exception handling later
         } catch (CmdLineException e) {
             System.err.println("Error: " + e.getMessage());
             System.err.println();
-            System.err.println("Example usage: java -jar MachineLabel.jar " + parser.printExample(OptionHandlerFilter.ALL) + " DATA1 DATA2 DATA3");
+            System.err.println("Example usage: java -jar Label.jar " + parser.printExample(OptionHandlerFilter.ALL) + " DATA1 DATA2 DATA3");
             System.err.println();
             parser.printUsage(System.err);
             //e.printStackTrace();
@@ -110,8 +114,8 @@ public class MachineLabel {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        MachineLabel machinelabel = new MachineLabel();
-        machinelabel.run(args);
+        Label label = new Label();
+        label.run(args);
     }
     
     private static String[] arrayJoin(String[] a, String[] b) {
